@@ -17,11 +17,14 @@ public class Buoyancy : MonoBehaviour
     [SerializeField] private float bobbingForce = 2f;      // ぷかぷかの強さ
 
     [Header("エフェクト設定")]
+    private AudioSource AudioSource;
+    public AudioClip splashSE;
     [SerializeField] private GameObject splashEffectPrefab; // 着水エフェクトのPrefab
     [SerializeField] private float minSplashVelocity = 2f;  // エフェクトが出る最小の落下速度
 
     [Header("移動時エフェクト")]
     [SerializeField] private GameObject moveEffectPrefab;   // 移動時（引き波等）エフェクトのPrefab
+    public AudioClip movesplashSE;
     [SerializeField] private float moveEffectThreshold = 1f; // エフェクトが発生する最小の水平速度
     [SerializeField] private float moveEffectInterval = 0.3f; // エフェクトの生成間隔（秒）
 
@@ -40,6 +43,8 @@ public class Buoyancy : MonoBehaviour
         defaultAngularDrag = rb.angularDamping;
 
         isUnderwater = transform.position.y < waterLevel;
+
+        AudioSource = gameObject.AddComponent<AudioSource>();//変数「audioSource」にAudioSourceコンポネントを入れる
     }
 
     void FixedUpdate()
@@ -94,6 +99,8 @@ public class Buoyancy : MonoBehaviour
     {
         if (splashEffectPrefab != null)
         {
+            AudioSource.PlayOneShot(splashSE); //サウンド流す
+
             Vector3 splashPosition = new Vector3(transform.position.x, waterLevel, transform.position.z);
             GameObject splash = Instantiate(splashEffectPrefab, splashPosition, Quaternion.identity);
             Destroy(splash, 2f);
@@ -120,6 +127,9 @@ public class Buoyancy : MonoBehaviour
 
             if (moveEffectTimer >= moveEffectInterval)
             {
+                // うるさかった
+                // AudioSource.PlayOneShot(movesplashSE); //サウンド流す
+
                 TriggerMoveEffect();
                 moveEffectTimer = 0f; // タイマーリセット
             }

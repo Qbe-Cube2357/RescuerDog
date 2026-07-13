@@ -14,7 +14,11 @@ public class ToyFollower : MonoBehaviour
 
 
     [Header("エフェクト設定")]
-    [SerializeField] public GameObject splashEffectPrefab; // 着水エフェクトのPrefab
+    [SerializeField] public GameObject GetEffectPrefab; // おもちゃを手に入れた時のエフェクトのPrefab
+
+    private AudioSource AudioSource;
+    public AudioClip GetSE;
+
 
     private bool isFollowing = false;
 
@@ -22,15 +26,27 @@ public class ToyFollower : MonoBehaviour
     public GameObject deliveryEffectPrefab; // 納品時に出すパーティクルなどのプレハブ（空でも動きます）
     private bool isDelivering = false;     // 納品演出中かどうかのフラグ
 
+
+    public AudioClip DeliveringSE;
+
+    void Start()
+    {
+        AudioSource = gameObject.AddComponent<AudioSource>();//変数「audioSource」にAudioSourceコンポネントを入れる
+    }
+
+
     // 追従を開始するときに外部（Player）から呼び出される関数
     public void StartFollowing(Transform newTarget)
     {
         target = newTarget;
         isFollowing = true;
 
+        // SE
+        AudioSource.PlayOneShot(GetSE); //サウンド流す
+
         // おもちゃを手に入れた時のエフェクト
         Vector3 splashPosition = new Vector3(transform.position.x, 0.0f, transform.position.z);
-        GameObject splash = Instantiate(splashEffectPrefab, splashPosition, Quaternion.identity);
+        GameObject splash = Instantiate(GetEffectPrefab, splashPosition, Quaternion.identity);
         Destroy(splash, 2f);
 
         // おもちゃの当たり判定（トリガー）をオフにする（集めた後はプレイヤーとぶつからないようにするため）
@@ -97,6 +113,8 @@ public class ToyFollower : MonoBehaviour
         // エフェクト（ParticleSystemなど）があれば生成
         if (deliveryEffectPrefab != null)
         {
+            AudioSource.PlayOneShot(DeliveringSE); //サウンド流す
+
             Vector3 effectPosition = new Vector3(transform.position.x, 0.0f, transform.position.z);
 
             GameObject ExploRffect = Instantiate(deliveryEffectPrefab, effectPosition, Quaternion.identity);

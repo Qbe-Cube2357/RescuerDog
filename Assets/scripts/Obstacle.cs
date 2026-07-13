@@ -12,6 +12,10 @@ public class Obstacle : MonoBehaviour
     [Header("プレイヤーが当たった時のエフェクト")]
     public GameObject conflictEffectPrefab;
 
+    private AudioSource AudioSource;
+
+    public AudioClip conflictSE;
+
     private Vector3 startPos;
     private Rigidbody rb;
 
@@ -19,6 +23,8 @@ public class Obstacle : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         startPos = transform.position; // 最初の位置を記憶
+
+        AudioSource = gameObject.AddComponent<AudioSource>();//変数「audioSource」にAudioSourceコンポネントを入れる
     }
 
     void Update()
@@ -42,6 +48,8 @@ public class Obstacle : MonoBehaviour
 
         if (other.CompareTag("Player"))
         {
+            AudioSource.PlayOneShot(conflictSE); //サウンド流す
+
             Instantiate(conflictEffectPrefab, transform.position, Quaternion.identity);
         }
     }

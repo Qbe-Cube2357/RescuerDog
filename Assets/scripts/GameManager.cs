@@ -20,7 +20,7 @@ public class GameManager : MonoBehaviour
     private GameState currentState;
 
     [Header("シーン設定")]
-    public string resultSceneName = "result"; // 仕様に合わせてresultに変更
+    public string resultSceneName = "ResultScene"; // 仕様に合わせてresultに変更
 
     [Header("UI設定 (TextMeshPro)")]
     public Image uiFill;
@@ -39,28 +39,26 @@ public class GameManager : MonoBehaviour
     [Header("ステージ状態の管理")]
     public float CountTime = 60f; // 60秒からカウントダウンするように変更
     private float gameTimer = 0;
+    public float ToyPrefab_Num = 15;
 
     [Header("モブ生成制限")]
     public int initialMobCount = 10;
 
     [Header("スコア設定")]
     public TextMeshProUGUI scoreText; // スコアを表示するUIテキスト
-    private int currentScore = 0;     // 現在の獲得ポイント
+    public static int currentScore = 0;
+    public int Score => currentScore;
 
     private void Awake()
     {
-        // シングルトンの設定
-        if (Instance == null) { Instance = this; }
-        else { Destroy(gameObject); }
+        Instance = this;
     }
 
     private void Start()
     {
+        currentScore = 0;
+
         gameTimer = CountTime;
-
-        // 最初はカウントダウン状態からスタート
-        StartCoroutine(GameLoopCoroutine());
-
         UpdateScoreUI(); // 初期スコア（0）を表示
         StartCoroutine(GameLoopCoroutine());
     }
@@ -134,10 +132,12 @@ public class GameManager : MonoBehaviour
     {
         if (spawnPoints.Length == 0 || toyPrefab.Length == 0) return;
 
-        for (int i = 0; i < toyPrefab.Length; i++)
+        for (int i = 0; i < ToyPrefab_Num; i++)
         {
             Transform sp = spawnPoints[Random.Range(0, spawnPoints.Length)];
-            Instantiate(toyPrefab[i], sp.position, sp.rotation);
+
+            GameObject randomToy = toyPrefab[Random.Range(0, toyPrefab.Length)];
+            Instantiate(randomToy, sp.position, sp.rotation);
         }
     }
 

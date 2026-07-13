@@ -183,9 +183,11 @@ MonoBehaviour:
   waterAngularDrag: 1
   bobbingFrequency: 2
   bobbingForce: 2
+  splashSE: {fileID: 8300000, guid: 146f20dcff28a4cd892045800edb912f, type: 3}
   splashEffectPrefab: {fileID: 3323387954473017891, guid: 0b912e9003fba894faa88cf964a6fb8a, type: 3}
   minSplashVelocity: 0.3
   moveEffectPrefab: {fileID: 3323387954473017891, guid: 0b912e9003fba894faa88cf964a6fb8a, type: 3}
+  movesplashSE: {fileID: 8300000, guid: 8fa587176d1e940c68b27e7d64ba4f38, type: 3}
   moveEffectThreshold: 1
   moveEffectInterval: 0.3
 --- !u!114 &-6720429460715449094
@@ -200,5 +202,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e4d50a1dfe5c4f1e942abbe32021701, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ToyFollower
-  splashEffectPrefab: {fileID: 8771972552311404799, guid: bbf9e36a48d6c5648a13889afab076fd, type: 3}
+  GetEffectPrefab: {fileID: 8771972552311404799, guid: bbf9e36a48d6c5648a13889afab076fd, type: 3}
+  GetSE: {fileID: 8300000, guid: 229b28bcfb68940e8ad7ed7e345e27ea, type: 3}
   deliveryEffectPrefab: {fileID: 5056385361940353899, guid: b1649e7de3cc44520939c65693c36555, type: 3}
+  DeliveringSE: {fileID: 8300000, guid: 7ffd49598cb9f4cc496d0a046427641e, type: 3}
