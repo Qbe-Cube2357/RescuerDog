@@ -7,6 +7,7 @@ public class Buoyancy : MonoBehaviour
     [SerializeField] private float waterLevel = 0f;      // 海面のY座標
     [SerializeField] private float floatThreshold = 2f;  // 完全に沈んだとみなす深さ
     [SerializeField] private float buoyancyForce = 15f;  // 浮力の強さ
+    public float WaterLevel => waterLevel;     // 外部共有用
 
     [Header("水中の抵抗")]
     [SerializeField] private float waterDrag = 3f;
@@ -44,7 +45,11 @@ public class Buoyancy : MonoBehaviour
 
         isUnderwater = transform.position.y < waterLevel;
 
-        AudioSource = gameObject.AddComponent<AudioSource>();//変数「audioSource」にAudioSourceコンポネントを入れる
+        AudioSource = GetComponent<AudioSource>();
+        if (AudioSource == null)
+        {
+            AudioSource = gameObject.AddComponent<AudioSource>();
+        }
     }
 
     void FixedUpdate()
@@ -99,7 +104,10 @@ public class Buoyancy : MonoBehaviour
     {
         if (splashEffectPrefab != null)
         {
-            AudioSource.PlayOneShot(splashSE); //サウンド流す
+            if (AudioSource != null && splashSE != null)
+            {
+                AudioSource.PlayOneShot(splashSE);
+            }
 
             Vector3 splashPosition = new Vector3(transform.position.x, waterLevel, transform.position.z);
             GameObject splash = Instantiate(splashEffectPrefab, splashPosition, Quaternion.identity);

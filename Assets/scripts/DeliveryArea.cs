@@ -12,6 +12,13 @@ public class DeliveryArea : MonoBehaviour
 
     private bool ManEmo = false; // 船上の男性
 
+    [Header("Cookie報酬演出")]
+    [SerializeField]
+    private CookieRewardEmitter cookieRewardEmitter;
+
+    [SerializeField]
+    private Transform cookieTargetPoint;
+
     private void OnTriggerEnter(Collider other)
     {
         // エリアに入ってきたのがプレイヤー（犬）だった場合
@@ -66,14 +73,68 @@ public class DeliveryArea : MonoBehaviour
             int lastIndex = toys.Count - 1;
             ToyFollower targetToy = toys[lastIndex];
 
+            bool isCameraToy = targetToy.TryGetComponent<CameraToyMarker>(out _);
+
+            int cookieCount = targetToy.CookieRewardCount;
+
             // リストから除外（追従を外す）
             toys.RemoveAt(lastIndex);
+
 
             // おもちゃに納品演出を実行させる
             targetToy.Deliver(() =>
             {
-                // 演出が完了（消滅）した瞬間にGameManagerにポイントを加算
-                GameManager.Instance.AddScore(pointsPerToy);
+                // 演出が完了（消滅）した瞬間にGameManagerにポイントとBS値を加算
+                // int score = targetToy.scoreValue;
+                // GameManager.Instance.AddScore(score);
+                // GameManager.Instance.AddBoostValue(score);
+
+                GameManager gameManager = GameManager.Instance;
+
+                // 実際のCookie数とスコアを先に確定
+                gameManager.GrantCookies(cookieCount);
+
+                // 現在のスコアとブーストの関係を維持する場合
+                int gainedScore = cookieCount * gameManager.ScorePerCookie;
+                gameManager.AddBoostValue(gainedScore);
+
+                // Cookieの飛行先
+                Transform target =
+                    cookieTargetPoint != null
+                        ? cookieTargetPoint
+                        : player.transform;
+
+                bool effectStarted =
+                    cookieRewardEmitter != null &&
+                    cookieRewardEmitter.Emit(
+                        cookieCount,
+                        target,
+                        gameManager.NotifyCookieArrived
+                    );
+
+                // 設定漏れがあってもUI表示を正しい値にする
+                if (!effectStarted)
+                {
+                    gameManager.NotifyCookiesWithoutEffect(cookieCount);
+                }
+
+                if (isCameraToy)
+                {
+
+                    if (PhotoBoothController.Instance != null)
+                    {
+                        PhotoBoothController.Instance.TryStartPhotoEvent();
+                    }
+                    else
+                    {
+                        Debug.LogError(
+                            "PhotoBoothControllerが見つかりません。"
+                        );
+                    }
+                }
+
+                PhaseManager.Instance?.NotifyDelivered(targetToy);
+
             });
 
             ManEmo = true;

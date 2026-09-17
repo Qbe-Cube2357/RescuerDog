@@ -7,13 +7,16 @@ EditorBuildSettings:
   m_Scenes:
   - enabled: 1
     path: Assets/Scenes/StartScene.unity
-    guid: 0e3b94cc5c66f4e408ba7df0cef4e5e3
+    guid: c4e28bfcb5d104f8e8a54c96ed105414
   - enabled: 1
     path: Assets/Scenes/MainScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
   - enabled: 1
+    path: Assets/Scenes/MenuScene.unity
+    guid: 5f8b063ddf18c40d69560db12a81173a
+  - enabled: 1
     path: Assets/Scenes/ResultScene.unity
-    guid: 92eae2248244a410999803ab5ec49a40
+    guid: 8caf223efe5f14ffb9fc78ee83a221b8
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

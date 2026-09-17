@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 0c416af56f2b6324e96f252b702a50f6
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 257970
+  packageName: On Screen Pointer/Indicator for Game Objects
+  packageVersion: 1.0.1
+  assetPath: Assets/OnScreenPointer/Example/NewUnlitShader 1.shader
+  uploadId: 724435

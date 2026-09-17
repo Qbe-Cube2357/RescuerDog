@@ -60,7 +60,7 @@ Material:
     - _QueueOffset: 0
     - _Smoothness: 0.89
     m_Colors:
-    - _DeepWaterColor: {r: 0.036712356, g: 0.3251104, b: 0.7075471, a: 0.89411765}
+    - _DeepWaterColor: {r: 0, g: 0.5815136, b: 0.6603774, a: 0.69411767}
     - _FoamColor: {r: 0.745283, g: 0.745283, b: 0.745283, a: 1}
     - _ShallowWaterColor: {r: 0.21960784, g: 0.21960784, b: 0.21960784, a: 1}
     - _UV4Normal01: {r: 40, g: 40, b: 0, a: 0}

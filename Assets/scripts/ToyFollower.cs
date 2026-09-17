@@ -5,12 +5,18 @@ using UnityEngine;
 public class ToyFollower : MonoBehaviour
 {
     private Transform target;      // 追いかける対象（プレイヤー、または前のおもちゃ）
-    private float followSpeed = 6f; // 追従するスピード
-    private float distanceOffset = 0.6f; // 前のオブジェクトとの適切な距離
+    private float followSpeed = 5.0f; // 追従するスピード
+    private float distanceOffset = 0.8f; // 前のオブジェクトとの適切な距離
 
     // 過去の位置と回転を記録するリスト
     private List<Vector3> positionHistory = new List<Vector3>();
     private List<Quaternion> rotationHistory = new List<Quaternion>();
+
+    [Header("クッキー報酬設定")]
+    [SerializeField, Min(0)]
+    private int cookieRewardCount = 1;
+
+    public int CookieRewardCount => cookieRewardCount;
 
 
     [Header("エフェクト設定")]
@@ -19,12 +25,13 @@ public class ToyFollower : MonoBehaviour
     private AudioSource AudioSource;
     public AudioClip GetSE;
 
-
     private bool isFollowing = false;
+    public bool IsCarried => isFollowing; // フェーズ管理用
 
     [Header("納品時のエフェクト設定")]
     public GameObject deliveryEffectPrefab; // 納品時に出すパーティクルなどのプレハブ（空でも動きます）
     private bool isDelivering = false;     // 納品演出中かどうかのフラグ
+    public bool IsBeingDelivered => isDelivering; // フェーズ管理用
 
 
     public AudioClip DeliveringSE;
@@ -115,7 +122,7 @@ public class ToyFollower : MonoBehaviour
         {
             AudioSource.PlayOneShot(DeliveringSE); //サウンド流す
 
-            Vector3 effectPosition = new Vector3(transform.position.x, 0.0f, transform.position.z);
+            Vector3 effectPosition = new Vector3(transform.position.x, -0.2f, transform.position.z);
 
             GameObject ExploRffect = Instantiate(deliveryEffectPrefab, effectPosition, Quaternion.identity);
 

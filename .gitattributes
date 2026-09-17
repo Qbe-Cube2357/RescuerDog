@@ -1,0 +1,4 @@
+SourceMovies/bi-mu.mov filter=lfs diff=lfs merge=lfs -text
+Assets/TextMesh[[:space:]]Pro/Resources/Fonts[[:space:]]&[[:space:]]Materials/DotGothic16-Regular[[:space:]]SDF.asset filter=lfs diff=lfs merge=lfs -text
+Assets/TextMesh[[:space:]]Pro/Resources/Fonts[[:space:]]&[[:space:]]Materials/YuseiMagic-Regular[[:space:]]SDF.asset filter=lfs diff=lfs merge=lfs -text
+Assets/TextMesh[[:space:]]Pro/Resources/Fonts[[:space:]]&[[:space:]]Materials/Buildingsandundertherailwaytracksfree_ver[[:space:]]SDF.asset filter=lfs diff=lfs merge=lfs -text

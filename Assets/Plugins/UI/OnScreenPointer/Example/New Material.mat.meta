@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 274e5e1a6d4363d489550b4d2267eb53
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 257970
+  packageName: On Screen Pointer/Indicator for Game Objects
+  packageVersion: 1.0.1
+  assetPath: Assets/OnScreenPointer/Example/New Material.mat
+  uploadId: 724435

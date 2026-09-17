@@ -6,11 +6,13 @@ TagManager:
   tags:
   - Toy
   - Obstacle
+  - Bird
+  - Treasure
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - MiniMap
   - Water
   - UI
   - 
@@ -40,6 +42,9 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: UIParticleLayer
+    uniqueID: 2537191865
+    locked: 0
   - name: Default
     uniqueID: 0
     locked: 0
