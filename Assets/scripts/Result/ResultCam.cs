@@ -6,12 +6,12 @@ using UnityEngine.UI;
 public class ResultCam : MonoBehaviour
 {
     Camera maincamera;
-    [SerializeField]private Camera camera2;
+    [SerializeField] private Camera camera2;
     [SerializeField] private Camera camera3;
     [SerializeField] private Camera camera4;
 
     [SerializeField] private GameObject cam;
-    [SerializeField] private float moveSpeed1 = 7f,moveSpeed2 = 8f;    // 移動の速さ
+    [SerializeField] private float moveSpeed1 = 7f, moveSpeed2 = 8f;    // 移動の速さ
     float moveZ = 1f;
 
     private float timer = 0f;
@@ -36,7 +36,7 @@ public class ResultCam : MonoBehaviour
     {
         timer += Time.deltaTime;
 
-        if(timer >= 3f && f1 == true)
+        if (timer >= 3f && f1 == true)
         {
             f1 = false;
             maincamera.enabled = true;
@@ -80,7 +80,7 @@ public class ResultCam : MonoBehaviour
             // XとYはそのまま維持し、Z座標だけを適用する
             cam.transform.position = currentPos;
         }
-        else if(timer >= 19f && timer <= 19.5f)
+        else if (timer >= 19f && timer <= 19.5f)
         {
             // 現在の位置情報を取得
             Vector3 currentPos = cam.transform.position;
@@ -92,16 +92,11 @@ public class ResultCam : MonoBehaviour
             cam.transform.position = currentPos;
         }
 
-        if(timer >= 19.5f && timer <= 20f)
+        if (timer >= 19.5f && timer <= 20f)
         {
-            // 現在の位置情報を取得
-            Vector3 currentPos = targetImage.transform.position;
-
-            // Z座標だけを滑らかに増やす（移動スピードに応じて加算）
-            currentPos.y += ImoveSpeed * Time.deltaTime;
-
-            // XとYはそのまま維持し、Z座標だけを適用する
-            targetImage.transform.position = currentPos;
+            RectTransform rect = targetImage.rectTransform;
+            rect.anchoredPosition +=
+                Vector2.up * ImoveSpeed * Time.deltaTime;
         }
 
         if (timer >= 10f)

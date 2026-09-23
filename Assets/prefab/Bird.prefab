@@ -155,7 +155,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4292170788808701894}
   serializedVersion: 2
-  m_LocalRotation: {x: 1, y: -0, z: -0, w: 0}
+  m_LocalRotation: {x: 0, y: 0, z: -1, w: 0}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 6, y: 6, z: 6}
   m_ConstrainProportionsScale: 1
@@ -163,7 +163,7 @@ Transform:
   - {fileID: 7586390130385208991}
   - {fileID: 4645309062085061903}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 180, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 180, y: 180, z: 0}
 --- !u!95 &8863368757260808999
 Animator:
   serializedVersion: 7
@@ -247,9 +247,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BirdAttackAgent
   turnSpeed: 360
+  orbitRadius: 1.5
+  orbitAngularSpeed: 120
+  randomizeOrbitDirection: 0
   diveSpeed: 18
   targetHeightOffset: 0.3
   arrivalDistance: 0.2
+  maximumDiveDuration: 5
   escapeSpeed: 14
   escapeDistance: 18
   escapeHeight: 10

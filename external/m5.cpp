@@ -5,6 +5,11 @@
 #include <unistd.h>  //シリアル通信用
 #include <fcntl.h>   //シリアル通信用
 #include <termios.h> //シリアル通信用
+#include <chrono>
+#include <thread>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #define DEV_NAME_L "/dev/cu.M5StickC-L"
 #define DEV_NAME_R "/dev/cu.M5StickC-R"
@@ -61,10 +66,13 @@ int main(int argc, const char *argv[])
                 fclose(fp);
             }
 
-            std::cout << "Saved: " << val[0] << "," << val[1] << std::endl;
+            // std::cout << "Saved: " << val[0] << "," << val[1] << std::endl; // ターミナル表示用
         }
         valOld[0] = val[0];
         valOld[1] = val[1];
+
+        std::this_thread::sleep_for(
+            std::chrono::milliseconds(5));
     }
 
     // count=0;
@@ -107,14 +115,14 @@ void initSerial()
         tcsetattr(fd[i], TCSANOW, &tio); // 設定してきた「tio」の内容をfdに適用
     }
 
-    std::cout << "Serial port initialized." << std::endl; // 初期設定が完了したことをターミナルに表示
+    // std::cout << "Serial port initialized." << std::endl; // 初期設定が完了したことをターミナルに表示 // ターミナル表示用
 }
 
 // bufferAll[]分析
 void analyzeBuffer(int devID)
 {
     // どんなデータが届いているか確認用
-    std::cout << "Received line with bufferPoint: " << bufferPoint << std::endl;
+    // std::cout << "Received line with bufferPoint: " << bufferPoint << std::endl; // ターミナル表示用
 
     char inData[2][BUFF_SIZE]; // 格納用2次元配列。2つの要素まで保存可能。それぞれ「BUFF_SIZE」分の文字の長さを持つ
     int dataID = 0;            // 「何番目の数値を処理しているか」カウンタ

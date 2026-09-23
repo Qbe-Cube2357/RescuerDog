@@ -15,6 +15,19 @@ public sealed class BirdAttackAgent : MonoBehaviour
     [SerializeField, Min(0f)]
     private float turnSpeed = 360f;
 
+    [Header("ロックオン中の円運動")]
+    [SerializeField, Min(0f)]
+    private float orbitRadius = 5f;
+
+    [SerializeField, Min(0f)]
+    private float orbitAngularSpeed = 30f;
+
+    [SerializeField]
+    private bool randomizeOrbitDirection = true;
+
+    private float orbitAngle;
+    private float orbitDirection = 1f;
+
     [Header("突撃")]
     [SerializeField, Min(0.1f)]
     private float diveSpeed = 18f;
@@ -69,8 +82,19 @@ public sealed class BirdAttackAgent : MonoBehaviour
             return;
         }
 
+        orbitAngle = Random.Range(0f, 360f);
+
+        orbitDirection =
+            randomizeOrbitDirection &&
+            Random.value < 0.5f
+                ? -1f
+                : 1f;
+
         SetAttackCollidersEnabled(false);
         currentState = BirdState.LockOn;
+
+        // 生成されたフレームから円周上へ配置する
+        ApplyOrbitTransform(true);
     }
 
     public void BeginDive()
@@ -156,9 +180,15 @@ public sealed class BirdAttackAgent : MonoBehaviour
             return;
         }
 
-        transform.position =
-            player.transform.position +
-            Vector3.up * lockOnHeight;
+        orbitAngle = Mathf.Repeat(
+            orbitAngle +
+            orbitAngularSpeed *
+            orbitDirection *
+            Time.deltaTime,
+            360f
+        );
+
+        ApplyOrbitTransform(false);
     }
 
     private void UpdateDive()
@@ -286,6 +316,61 @@ public sealed class BirdAttackAgent : MonoBehaviour
             {
                 attackCollider.enabled = enabled;
             }
+        }
+    }
+
+    private void ApplyOrbitTransform(bool snapRotation)
+    {
+        if (player == null)
+        {
+            return;
+        }
+
+        // 円運動の中心は、常にプレイヤーの真上
+        Vector3 orbitCenter =
+            player.transform.position +
+            Vector3.up * lockOnHeight;
+
+        float angleRadians =
+            orbitAngle * Mathf.Deg2Rad;
+
+        Vector3 radialDirection =
+            new Vector3(
+                Mathf.Cos(angleRadians),
+                0f,
+                Mathf.Sin(angleRadians)
+            );
+
+        transform.position =
+            orbitCenter +
+            radialDirection * orbitRadius;
+
+        // 円周に沿った進行方向
+        Vector3 tangentDirection =
+            new Vector3(
+                -Mathf.Sin(angleRadians),
+                0f,
+                Mathf.Cos(angleRadians)
+            ) * orbitDirection;
+
+        Quaternion targetRotation =
+            Quaternion.LookRotation(
+                tangentDirection,
+                Vector3.up
+            );
+
+        if (snapRotation)
+        {
+            transform.rotation = targetRotation;
+        }
+        else
+        {
+            transform.rotation =
+                Quaternion.RotateTowards(
+                    transform.rotation,
+                    targetRotation,
+                    turnSpeed * Time.deltaTime
+                );
         }
     }
 }

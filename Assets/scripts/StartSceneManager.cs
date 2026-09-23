@@ -38,9 +38,7 @@ public class StartSceneManager : MonoBehaviour
 
         anim = GetComponent<Animator>();
 
-        // RescuerDog/external/data.txt の絶対パスを生成
-        // Application.dataPath は Project/Assets を指すため、一つ上の階層の external を指定
-        filePath = Path.Combine(Application.dataPath, "../external/data.txt");
+        filePath = ExternalPaths.SensorDataFilePath;
 
         audioSource = GetComponent<AudioSource>();
     }

@@ -47,17 +47,8 @@ public sealed class HandleInputReader : MonoBehaviour
 
     private void Awake()
     {
-#if UNITY_EDITOR
-        filePath = Path.GetFullPath(
-            Path.Combine(Application.dataPath, "../external/data.txt")
-        );
-#else
-        filePath = Path.GetFullPath(
-            Path.Combine(Application.dataPath, "../../external/data.txt")
-        );
-#endif
+        filePath = ExternalPaths.SensorDataFilePath;
     }
-
     private void Update()
     {
         if (useSensorData)

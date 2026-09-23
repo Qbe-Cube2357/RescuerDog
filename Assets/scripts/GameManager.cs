@@ -106,6 +106,13 @@ public class GameManager : MonoBehaviour
     public float boostFaceEffectDuration = 1.0f;
     private GameObject boostModeEffect; // 犬顔の後ろに映すエフェクト
 
+    [Header("クッキー加算時の表情")]
+    [SerializeField, Min(0f)]
+    private float cookieExciteFaceDuration = 2f;
+
+    private Coroutine cookieExciteFaceRoutine;
+    private bool isCookieExciteFaceActive;
+
     [Header("ブーストMovie演出設定")]
     [SerializeField] private BoostMoviePlayer boostMoviePlayer;
 
@@ -116,7 +123,23 @@ public class GameManager : MonoBehaviour
 
     [Header("BGM設定")]
     public AudioClip bgmClip;
+
+    [SerializeField, Range(0f, 1f)]
+    private float bgmVolume = 0.5f;
+
     private AudioSource bgmAudioSource;
+
+    [Header("クッキーSE設定")]
+    [SerializeField]
+    private AudioClip cookieReceiveSE;
+
+    [SerializeField]
+    private AudioClip cookieScoreCommitSE;
+
+    [SerializeField, Range(0f, 1f)]
+    private float seVolume = 1f;
+
+    private AudioSource seAudioSource;
 
     private void Awake()
     {
@@ -127,6 +150,14 @@ public class GameManager : MonoBehaviour
         bgmAudioSource.clip = bgmClip;
         bgmAudioSource.loop = true;
         bgmAudioSource.playOnAwake = false;
+        bgmAudioSource.spatialBlend = 0f;
+        bgmAudioSource.volume = bgmVolume;
+
+        // SE用AudioSource
+        seAudioSource = gameObject.AddComponent<AudioSource>();
+        seAudioSource.playOnAwake = false;
+        seAudioSource.loop = false;
+        seAudioSource.spatialBlend = 0f;
 
         playerControl = mainPlayer.GetComponent<PlayerControl_2>();
     }
@@ -306,6 +337,13 @@ public class GameManager : MonoBehaviour
 
     private void AddPendingCookieScore(int amount)
     {
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        PlaySE(cookieReceiveSE);
+
         pendingCookieScore += amount;
 
         if (cookiePlusScoreUI != null)
@@ -344,6 +382,9 @@ public class GameManager : MonoBehaviour
 
         // ScoreTextに表示する累計値へ加算
         displayedScoreTarget += scoreToCommit;
+
+        PlaySE(cookieScoreCommitSE);
+        ShowCookieExciteFace();
 
         AnimateScoreText(displayedScoreTarget);
 
@@ -483,19 +524,25 @@ public class GameManager : MonoBehaviour
     // -----『ブースト中の顔画像UI関連』-----
     private void SetBoostFace(bool boost)
     {
+        bool showExcite = isCookieExciteFaceActive;
+
         if (corgiFaceNormal != null)
         {
-            corgiFaceNormal.SetActive(!boost);
+            corgiFaceNormal.SetActive(
+                !boost && !showExcite
+            );
         }
 
         if (corgiFaceExite != null)
         {
-            corgiFaceExite.SetActive(false);
+            corgiFaceExite.SetActive(showExcite);
         }
 
         if (corgiFaceBoost != null)
         {
-            corgiFaceBoost.SetActive(boost);
+            corgiFaceBoost.SetActive(
+                boost && !showExcite
+            );
         }
     }
 
@@ -541,6 +588,33 @@ public class GameManager : MonoBehaviour
         // Destroy(effect, boostFaceEffectDuration);
     }
 
+    private void ShowCookieExciteFace()
+    {
+        if (cookieExciteFaceRoutine != null)
+        {
+            StopCoroutine(cookieExciteFaceRoutine);
+        }
+
+        cookieExciteFaceRoutine =
+            StartCoroutine(CookieExciteFaceRoutine());
+    }
+
+    private IEnumerator CookieExciteFaceRoutine()
+    {
+        isCookieExciteFaceActive = true;
+        SetBoostFace(isBoosting);
+
+        yield return new WaitForSeconds(
+            cookieExciteFaceDuration
+        );
+
+        isCookieExciteFaceActive = false;
+        cookieExciteFaceRoutine = null;
+
+        // 2秒後、現在のブースト状態に合った顔へ戻す
+        SetBoostFace(isBoosting);
+    }
+
     // -----『ブースト中の動画関連』-----
     private IEnumerator PlayBoostMovieRoutine()
     {
@@ -563,5 +637,16 @@ public class GameManager : MonoBehaviour
         Time.timeScale = timeScaleBeforeMovie;
 
         isBoostMoviePlaying = false;
+    }
+
+    // -----『SE音』-----
+    private void PlaySE(AudioClip clip)
+    {
+        if (seAudioSource == null || clip == null)
+        {
+            return;
+        }
+
+        seAudioSource.PlayOneShot(clip, seVolume);
     }
 }

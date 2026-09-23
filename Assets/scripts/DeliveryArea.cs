@@ -19,6 +19,33 @@ public class DeliveryArea : MonoBehaviour
     [SerializeField]
     private Transform cookieTargetPoint;
 
+
+    [Header("通常ゲーム報酬")]
+    [SerializeField]
+    private bool grantGameplayRewards = true;
+
+    public event System.Action<ToyFollower> ToyDelivered;
+
+    private Collider deliveryTrigger;
+
+    private void Awake()
+    {
+        deliveryTrigger = GetComponent<Collider>();
+    }
+
+    public void SetDeliveryEnabled(bool deliveryEnabled)
+    {
+        if (deliveryTrigger == null)
+        {
+            deliveryTrigger = GetComponent<Collider>();
+        }
+
+        if (deliveryTrigger != null)
+        {
+            deliveryTrigger.enabled = deliveryEnabled;
+        }
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         // エリアに入ってきたのがプレイヤー（犬）だった場合
@@ -91,49 +118,45 @@ public class DeliveryArea : MonoBehaviour
 
                 GameManager gameManager = GameManager.Instance;
 
-                // 実際のCookie数とスコアを先に確定
-                gameManager.GrantCookies(cookieCount);
-
-                // 現在のスコアとブーストの関係を維持する場合
-                int gainedScore = cookieCount * gameManager.ScorePerCookie;
-                gameManager.AddBoostValue(gainedScore);
-
-                // Cookieの飛行先
-                Transform target =
-                    cookieTargetPoint != null
-                        ? cookieTargetPoint
-                        : player.transform;
-
-                bool effectStarted =
-                    cookieRewardEmitter != null &&
-                    cookieRewardEmitter.Emit(
-                        cookieCount,
-                        target,
-                        gameManager.NotifyCookieArrived
-                    );
-
-                // 設定漏れがあってもUI表示を正しい値にする
-                if (!effectStarted)
+                if (grantGameplayRewards && gameManager != null)
                 {
-                    gameManager.NotifyCookiesWithoutEffect(cookieCount);
-                }
+                    gameManager.GrantCookies(cookieCount);
 
-                if (isCameraToy)
-                {
+                    int gainedScore =
+                        cookieCount * gameManager.ScorePerCookie;
 
-                    if (PhotoBoothController.Instance != null)
-                    {
-                        PhotoBoothController.Instance.TryStartPhotoEvent();
-                    }
-                    else
-                    {
-                        Debug.LogError(
-                            "PhotoBoothControllerが見つかりません。"
+                    gameManager.AddBoostValue(gainedScore);
+
+                    Transform target =
+                        cookieTargetPoint != null
+                            ? cookieTargetPoint
+                            : player.transform;
+
+                    bool effectStarted =
+                        cookieRewardEmitter != null &&
+                        cookieRewardEmitter.Emit(
+                            cookieCount,
+                            target,
+                            gameManager.NotifyCookieArrived
                         );
+
+                    if (!effectStarted)
+                    {
+                        gameManager.NotifyCookiesWithoutEffect(
+                            cookieCount
+                        );
+                    }
+
+                    if (isCameraToy &&
+                        PhotoBoothController.Instance != null)
+                    {
+                        PhotoBoothController.Instance
+                            .TryStartPhotoEvent();
                     }
                 }
 
                 PhaseManager.Instance?.NotifyDelivered(targetToy);
+                ToyDelivered?.Invoke(targetToy);
 
             });
 

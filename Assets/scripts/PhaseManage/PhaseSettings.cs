@@ -26,6 +26,15 @@ public sealed class PhaseSettings
     [Min(0)]
     public int maxTreasureCount;
 
+    [Header("風船付き宝")]
+    [Tooltip("お宝総数のうち、風船付きにする最小数")]
+    [Min(0)]
+    public int minBalloonTreasureCount;
+
+    [Tooltip("お宝総数のうち、風船付きにする最大数")]
+    [Min(0)]
+    public int maxBalloonTreasureCount;
+
     public bool refillTreasuresWhenAllDelivered;
 
     [Header("カメラ")]

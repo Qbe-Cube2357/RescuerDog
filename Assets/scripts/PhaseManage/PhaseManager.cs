@@ -19,6 +19,9 @@ public sealed class PhaseManager : MonoBehaviour
     private GameObject[] treasurePrefabs;
 
     [SerializeField]
+    private GameObject[] balloonTreasurePrefabs;
+
+    [SerializeField]
     private GameObject cameraPrefab;
 
     [SerializeField]
@@ -50,13 +53,17 @@ public sealed class PhaseManager : MonoBehaviour
 
     [Header("UI")]
     [SerializeField]
-    private Image timerFill;
+    private Image timerFill; // 現在フェーズの残り時間
+
+    [SerializeField]
+    private Image overallPhaseFill; // 全5フェーズの進捗
 
     [SerializeField]
     private TMP_Text timerText;
 
+    [Header("フェーズ開始表示")]
     [SerializeField]
-    private TMP_Text phaseText;
+    private PhaseAnnouncementUI phaseAnnouncementUI;
 
     private readonly HashSet<ToyFollower> activeToys =
         new HashSet<ToyFollower>();
@@ -124,7 +131,15 @@ public sealed class PhaseManager : MonoBehaviour
             return;
         }
 
+        // カウントダウン中もフェーズ1としてUIを準備する
+        currentPhaseIndex = 0;
         remainingTime = phases[0].timeLimit;
+
+        if (overallPhaseFill != null)
+        {
+            overallPhaseFill.fillAmount = 0f;
+        }
+
         RefreshUI(phases[0]);
     }
 
@@ -207,6 +222,13 @@ public sealed class PhaseManager : MonoBehaviour
 
         RefreshUI(settings);
 
+        string announcementText =
+            string.IsNullOrWhiteSpace(settings.phaseName)
+                ? $"PHASE {currentPhaseIndex + 1}"
+                : settings.phaseName;
+
+        phaseAnnouncementUI?.Play(announcementText);
+
         isChangingPhase = false;
 
         Debug.Log(
@@ -277,6 +299,8 @@ public sealed class PhaseManager : MonoBehaviour
 
         isChangingPhase = true;
 
+        SnapOverallFillToCurrentPhaseEnd();
+
         // 地面に残ったおもちゃと宝だけを消す。
         // 所持中・納品演出中のものは次フェーズへ持ち越す。
         RemoveUncarriedItems(activeToys);
@@ -313,24 +337,144 @@ public sealed class PhaseManager : MonoBehaviour
         );
     }
 
-    private void SpawnTreasureBatch(PhaseSettings settings)
+    private void SpawnTreasureBatch(
+        PhaseSettings settings)
     {
-        int count = GetRandomCount(
+        int totalCount = GetRandomCount(
             settings.minTreasureCount,
             settings.maxTreasureCount
         );
 
-        if (count <= 0)
+        if (totalCount <= 0)
         {
             return;
         }
 
-        SpawnBatch(
-            treasurePrefabs,
-            treasureSpawnPoints,
-            count,
-            activeTreasures
+        int balloonCount = GetRandomCount(
+            settings.minBalloonTreasureCount,
+            settings.maxBalloonTreasureCount
         );
+
+        // 風船付きも総お宝数に含まれる。
+        balloonCount = Mathf.Clamp(
+            balloonCount,
+            0,
+            totalCount
+        );
+
+        List<GameObject> normalPrefabs =
+            CreateValidPrefabList(treasurePrefabs);
+
+        List<GameObject> balloonPrefabs =
+            CreateValidPrefabList(
+                balloonTreasurePrefabs
+            );
+
+        if (normalPrefabs.Count == 0 &&
+            balloonPrefabs.Count == 0)
+        {
+            Debug.LogError(
+                $"{settings.phaseName}のお宝Prefabがありません。",
+                this
+            );
+            return;
+        }
+
+        // 風船Prefabが未設定なら通常のお宝で補う。
+        if (balloonCount > 0 &&
+            balloonPrefabs.Count == 0)
+        {
+            Debug.LogWarning(
+                $"{settings.phaseName}の風船付きお宝Prefabがありません。" +
+                "通常のお宝で補います。",
+                this
+            );
+
+            balloonCount = 0;
+        }
+
+        // 通常Prefabがない場合は全て風船付きにする。
+        if (balloonCount < totalCount &&
+            normalPrefabs.Count == 0)
+        {
+            Debug.LogWarning(
+                $"{settings.phaseName}の通常お宝Prefabがありません。" +
+                "全て風船付きお宝にします。",
+                this
+            );
+
+            balloonCount = totalCount;
+        }
+
+        List<Transform> points =
+            CreateShuffledPointList(
+                treasureSpawnPoints
+            );
+
+        if (points.Count == 0)
+        {
+            Debug.LogError(
+                "お宝のSpawnPointが設定されていません。",
+                this
+            );
+            return;
+        }
+
+        for (int i = 0; i < totalCount; i++)
+        {
+            bool spawnBalloonTreasure =
+                i < balloonCount;
+
+            List<GameObject> sourcePrefabs =
+                spawnBalloonTreasure
+                    ? balloonPrefabs
+                    : normalPrefabs;
+
+            GameObject prefab = sourcePrefabs[
+                Random.Range(
+                    0,
+                    sourcePrefabs.Count
+                )
+            ];
+
+            Transform spawnPoint =
+                points[i % points.Count];
+
+            ToyFollower item =
+                CreateCollectible(
+                    prefab,
+                    spawnPoint
+                );
+
+            if (item != null)
+            {
+                // 通常・風船付きとも同じ集合で管理する。
+                activeTreasures.Add(item);
+            }
+        }
+    }
+
+    private static List<GameObject>
+    CreateValidPrefabList(
+        GameObject[] source)
+    {
+        List<GameObject> result =
+            new List<GameObject>();
+
+        if (source == null)
+        {
+            return result;
+        }
+
+        foreach (GameObject prefab in source)
+        {
+            if (prefab != null)
+            {
+                result.Add(prefab);
+            }
+        }
+
+        return result;
     }
 
     private void SpawnCamera(PhaseSettings settings)
@@ -565,29 +709,54 @@ public sealed class PhaseManager : MonoBehaviour
             return;
         }
 
+        float timeLimit = Mathf.Max(0.01f, settings.timeLimit);
+
+        // 0 = フェーズ開始、1 = フェーズ終了
+        float phaseProgress =
+            Mathf.Clamp01(1f - remainingTime / timeLimit);
+
         if (timerText != null)
         {
             timerText.text =
                 Mathf.CeilToInt(remainingTime).ToString();
         }
 
+        // 現在フェーズの残り時間ゲージ
+        // 開始時1、終了時0
         if (timerFill != null)
         {
-            timerFill.fillAmount =
-                Mathf.InverseLerp(
-                    0f,
-                    settings.timeLimit,
-                    remainingTime
-                );
+            timerFill.fillAmount = 1f - phaseProgress;
         }
 
-        if (phaseText != null)
+        // ゲーム全体の進捗ゲージ
+        if (overallPhaseFill != null)
         {
-            phaseText.text = string.IsNullOrWhiteSpace(
-                settings.phaseName
-            )
-                ? $"フェーズ {currentPhaseIndex + 1}"
-                : settings.phaseName;
+            int phaseCount = Mathf.Max(1, phases.Length);
+
+            float overallProgress =
+                (currentPhaseIndex + phaseProgress) /
+                phaseCount;
+
+            overallPhaseFill.fillAmount =
+                Mathf.Clamp01(overallProgress);
         }
+
+    }
+
+    private void SnapOverallFillToCurrentPhaseEnd()
+    {
+        if (overallPhaseFill == null ||
+            phases == null ||
+            phases.Length == 0)
+        {
+            return;
+        }
+
+        float phaseEndProgress =
+            (currentPhaseIndex + 1f) /
+            phases.Length;
+
+        overallPhaseFill.fillAmount =
+            Mathf.Clamp01(phaseEndProgress);
     }
 }

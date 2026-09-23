@@ -112,17 +112,43 @@ int main(int argc, char *argv[])
 {
     // OpenCV初期設定処理
     // カメラキャプチャの初期化
-    cv::VideoCapture capture = cv::VideoCapture(0);
+    cv::VideoCapture capture;
 
-    // if (capture.isOpened() == 0)
-    // {
-    //     // カメラが見つからないときはメッセージを表示して終了
-    //     printf("Camera not found\n");
-    //     exit(1);
-    // }
+    // 初回はmacOSのカメラ許可ダイアログが表示されるため、
+    // 許可結果を待ちながら最大約60秒再試行する。
+    constexpr int cameraOpenRetryCount = 120;
+    constexpr int cameraOpenRetryIntervalMs = 500;
+
+    for (int attempt = 0;
+         attempt < cameraOpenRetryCount;
+         ++attempt)
+    {
+        capture.release();
+
+        if (capture.open(0, cv::CAP_AVFOUNDATION))
+        {
+            break;
+        }
+
+        if (attempt == 0)
+        {
+            std::cerr
+                << "Waiting for macOS camera permission..."
+                << std::endl;
+        }
+
+        std::this_thread::sleep_for(
+            std::chrono::milliseconds(
+                cameraOpenRetryIntervalMs));
+    }
+
     if (!capture.isOpened())
     {
-        // カメラが見つからないときはメッセージを表示して終了
+        std::cerr
+            << "Camera permission was not granted "
+            << "or the camera could not be opened."
+            << std::endl;
+
         SendProtocolMessage("ERROR|CAMERA_NOT_FOUND");
         return 1;
     }

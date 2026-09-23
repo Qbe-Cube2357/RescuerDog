@@ -39,6 +39,38 @@ public class PlayerControl_2 : MonoBehaviour
     public float boostScaleMultiplier = 1.5f;
     public float boostScaleDuration = 1f;
 
+    [Header("チュートリアル用のキー変数")]
+    [SerializeField]
+    private KeyCode leftForwardKey = KeyCode.Q;
+
+    [SerializeField]
+    private KeyCode leftBackwardKey = KeyCode.A;
+
+    [SerializeField]
+    private KeyCode rightForwardKey = KeyCode.E;
+
+    [SerializeField]
+    private KeyCode rightBackwardKey = KeyCode.D;
+
+    // ----- チュートリアル用 -----
+    private bool tutorialControlOverride; // チュートリアル用
+    private bool tutorialControlEnabled; // チュートリアル用
+    private bool CanProcessInput
+    {
+        get
+        {
+            if (tutorialControlOverride)
+            {
+                return tutorialControlEnabled;
+            }
+
+            return
+                GameManager.Instance != null &&
+                GameManager.Instance.IsPlaying;
+        }
+    }
+    // --------------------
+
     private Animator anim;
     private Rigidbody rb;
     private AudioSource audioSource;
@@ -66,34 +98,24 @@ public class PlayerControl_2 : MonoBehaviour
         rb = GetComponent<Rigidbody>();
 
         audioSource = GetComponent<AudioSource>();
+
         if (audioSource == null)
         {
             audioSource = gameObject.AddComponent<AudioSource>();
         }
 
-        rb.interpolation = RigidbodyInterpolation.Interpolate;
+        rb.interpolation =
+            RigidbodyInterpolation.Interpolate;
+
         normalScale = transform.localScale;
         currentMaxSpeed = WalkSpeedSimulate();
 
-#if UNITY_EDITOR
-        filePath = Path.GetFullPath(
-            Path.Combine(Application.dataPath, "../external/data.txt")
-        );
-#else
-        filePath = Path.GetFullPath(
-            Path.Combine(Application.dataPath, "../../external/data.txt")
-        );
-#endif
-
-        if (useSensorData)
-        {
-            StartM5Program();
-        }
+        filePath = ExternalPaths.SensorDataFilePath;
     }
 
     private void Update()
     {
-        if (GameManager.Instance == null || !GameManager.Instance.IsPlaying)
+        if (!CanProcessInput)
         {
             ResetHandleInput();
             forwardComponent = 0f;
@@ -127,7 +149,11 @@ public class PlayerControl_2 : MonoBehaviour
 
     private void FixedUpdate()
     {
-
+        if (!CanProcessInput)
+        {
+            rb.angularVelocity = Vector3.zero;
+            return;
+        }
 
         float targetRotation = rotateSpeed * rotateComponent;
         rb.angularVelocity = new Vector3(
@@ -184,8 +210,14 @@ public class PlayerControl_2 : MonoBehaviour
     private void SimulateM5StickInput()
     {
         float targetLeft = 0f;
-        if (Input.GetKey(KeyCode.Q)) targetLeft = 1f;
-        else if (Input.GetKey(KeyCode.A)) targetLeft = -1f;
+        if (Input.GetKey(leftForwardKey))
+        {
+            targetLeft = 1f;
+        }
+        else if (Input.GetKey(leftBackwardKey))
+        {
+            targetLeft = -1f;
+        }
 
         if (targetLeft != 0f && !Input.GetKey(KeyCode.LeftShift))
         {
@@ -199,8 +231,14 @@ public class PlayerControl_2 : MonoBehaviour
         );
 
         float targetRight = 0f;
-        if (Input.GetKey(KeyCode.E)) targetRight = 1f;
-        else if (Input.GetKey(KeyCode.D)) targetRight = -1f;
+        if (Input.GetKey(rightForwardKey))
+        {
+            targetRight = 1f;
+        }
+        else if (Input.GetKey(rightBackwardKey))
+        {
+            targetRight = -1f;
+        }
 
         if (targetRight != 0f && !Input.GetKey(KeyCode.LeftShift))
         {
@@ -308,6 +346,15 @@ public class PlayerControl_2 : MonoBehaviour
                     : collectedToys[collectedToys.Count - 1].transform;
 
                 toy.StartFollowing(targetTransform);
+
+                if (toy.TryGetComponent<
+                    BalloonTreasureController>(
+                        out BalloonTreasureController
+                            balloonTreasure))
+                {
+                    balloonTreasure.ReleaseBalloon();
+                }
+
                 collectedToys.Add(toy);
 
                 UnityEngine.Debug.Log(
@@ -451,93 +498,43 @@ public class PlayerControl_2 : MonoBehaviour
         DropHalfToys();
     }
 
-    private void StartM5Program()
-    {
-        string externalFolder;
-
-#if UNITY_EDITOR
-        externalFolder = Path.GetFullPath(
-            Path.Combine(Application.dataPath, "../external")
-        );
-#else
-        externalFolder = Path.GetFullPath(
-            Path.Combine(Application.dataPath, "../../external")
-        );
-#endif
-
-        string m5Path = Path.Combine(externalFolder, "m5");
-        if (!File.Exists(m5Path))
-        {
-            UnityEngine.Debug.LogError(
-                "m5実行ファイルが見つかりません: " + m5Path
-            );
-            return;
-        }
-
-        try
-        {
-            ProcessStartInfo startInfo = new ProcessStartInfo
-            {
-                FileName = m5Path,
-                WorkingDirectory = externalFolder,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            m5Process = new Process
-            {
-                StartInfo = startInfo
-            };
-
-            m5Process.Start();
-            UnityEngine.Debug.Log("M5Stick用プログラムを起動しました。");
-        }
-        catch (System.Exception exception)
-        {
-            UnityEngine.Debug.LogError(
-                "m5の起動に失敗しました: " + exception.Message
-            );
-        }
-    }
-
-    private void StopM5Program()
-    {
-        if (m5Process == null)
-        {
-            return;
-        }
-
-        try
-        {
-            if (!m5Process.HasExited)
-            {
-                m5Process.Kill();
-                m5Process.WaitForExit();
-            }
-        }
-        catch (System.Exception exception)
-        {
-            UnityEngine.Debug.LogWarning(
-                "m5の終了に失敗しました: " + exception.Message
-            );
-        }
-
-        m5Process.Dispose();
-        m5Process = null;
-    }
 
     private void OnDisable()
     {
         ResetHandleInput();
     }
-
-    private void OnDestroy()
+    /// <summary>
+    /// チュートリアル用
+    /// </summary>
+    public void SetTutorialControlEnabled(bool controlEnabled)
     {
-        StopM5Program();
+        tutorialControlOverride = true;
+        tutorialControlEnabled = controlEnabled;
+
+        if (!controlEnabled)
+        {
+            ResetHandleInput();
+
+            forwardComponent = 0f;
+            rotateComponent = 0f;
+
+            if (rb != null)
+            {
+                rb.linearVelocity = new Vector3(
+                    0f,
+                    rb.linearVelocity.y,
+                    0f
+                );
+
+                rb.angularVelocity = Vector3.zero;
+            }
+        }
     }
 
-    private void OnApplicationQuit()
+    public void ClearTutorialControlOverride()
     {
-        StopM5Program();
+        tutorialControlOverride = false;
+        tutorialControlEnabled = false;
     }
+
 }

@@ -33,6 +33,12 @@ public sealed class BirdEvasionTracker : MonoBehaviour
     private float candidateHoldTime;
     private float timeSinceLastAcceptedDirection;
 
+    public int DirectionChangeCount =>
+    directionChangeCount; // チューリアル用
+
+    public int RequiredDirectionChanges =>
+        requiredDirectionChanges; // チューリアル用
+
     public float Progress =>
         requiredDirectionChanges <= 0
             ? 1f
